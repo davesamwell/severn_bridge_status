@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern Sleek Theme - Dark Mode -->\n    <color name="primary_blue">#4DD0E1</color>
+    <color name="primary_blue_dark">#00ACC1</color>
+    <color name="primary_blue_light">#80DEEA</color>
+    <color name="accent_teal">#4DD0E1</color>
+    <color name="accent_teal_light">#80DEEA</color>
+    
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Modern Status Colors - Dark Mode -->\n    <color name="status_open">#1B4D2C</color>
+    <color name="status_open_text">#81C784</color>
+    <color name="status_open_icon">#66BB6A</color>
+    
+    <color name="status_restricted">#4D3319</color>
+    <color name="status_restricted_text">#FFB74D</color>
+    <color name="status_restricted_icon">#FFA726</color>
+    
+    <color name="status_closed">#4D1B1B</color>
+    <color name="status_closed_text">#EF5350</color>
+    <color name="status_closed_icon">#E57373</color>
+    
+    <color name="status_unknown">#2D2D2D</color>
+    <color name="status_unknown_text">#9E9E9E</color>
+    <color name="status_unknown_icon">#757575</color>
+    
+    <!-- Card and Background - Dark Mode -->\n    <color name="card_background">#1E1E1E</color>
+    <color name="surface_background">#121212</color>
+    <color name="divider">#3A3A3A</color>
+    
+    <!-- Text Colors - Dark Mode -->\n    <color name="text_primary">#E1E8ED</color>
+    <color name="text_secondary">#A0AEC0</color>
+    <color name="text_hint">#718096</color>
+    
+    <!-- Accent -->\n    <color name="link_blue">#38BDF8</color>
+</resources>

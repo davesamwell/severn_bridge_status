@@ -1,5 +1,7 @@
 package com.severn.bridgemonitor
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: BridgeViewModel
     private val handler = Handler(Looper.getMainLooper())
     private var countdownRunnable: Runnable? = null
+    private var currentView = "present" // Track which view is active
     
     // UK timezone (automatically handles BST/GMT)
     private val ukZone = ZoneId.of("Europe/London")
@@ -77,6 +80,12 @@ class MainActivity : AppCompatActivity() {
             showFuturePain()
         }
         
+        // National Highways link handler
+        binding.nationalHighwaysLink.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://nationalhighways.co.uk/travel-updates/the-severn-bridges/"))
+            startActivity(intent)
+        }
+        
         // Start with Present Pain view
         showPresentPain()
     }
@@ -86,8 +95,8 @@ class MainActivity : AppCompatActivity() {
             if (data != null) {
                 // Data loaded - hide loading message and show content
                 binding.loadingMessage.visibility = View.GONE
-                binding.presentPainContainer.visibility = if (binding.presentPainButton.isEnabled.not()) View.VISIBLE else View.GONE
-                binding.futurePainContainer.visibility = if (binding.futurePainButton.isEnabled.not()) View.VISIBLE else View.GONE
+                binding.presentPainContainer.visibility = if (currentView == "present") View.VISIBLE else View.GONE
+                binding.futurePainContainer.visibility = if (currentView == "future") View.VISIBLE else View.GONE
                 
                 updateUI(data)
                 // Update Future Pain view if it's currently visible
@@ -123,21 +132,41 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showPresentPain() {
+        currentView = "present"
         binding.presentPainContainer.visibility = View.VISIBLE
         binding.futurePainContainer.visibility = View.GONE
         
-        // Update button styles
-        binding.presentPainButton.isEnabled = false
-        binding.futurePainButton.isEnabled = true
+        // Update tab styles - modern underline indicator
+        binding.presentPainText.apply {
+            setTextColor(ContextCompat.getColor(context, R.color.primary_blue))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        binding.presentPainIndicator.visibility = View.VISIBLE
+        
+        binding.futurePainText.apply {
+            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+            setTypeface(null, android.graphics.Typeface.NORMAL)
+        }
+        binding.futurePainIndicator.visibility = View.INVISIBLE
     }
     
     private fun showFuturePain() {
+        currentView = "future"
         binding.presentPainContainer.visibility = View.GONE
         binding.futurePainContainer.visibility = View.VISIBLE
         
-        // Update button styles
-        binding.presentPainButton.isEnabled = true
-        binding.futurePainButton.isEnabled = false
+        // Update tab styles - modern underline indicator
+        binding.presentPainText.apply {
+            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+            setTypeface(null, android.graphics.Typeface.NORMAL)
+        }
+        binding.presentPainIndicator.visibility = View.INVISIBLE
+        
+        binding.futurePainText.apply {
+            setTextColor(ContextCompat.getColor(context, R.color.primary_blue))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        binding.futurePainIndicator.visibility = View.VISIBLE
         
         // Update the view with current data
         viewModel.bridgeData.value?.let { updateFuturePainView(it) }
@@ -149,50 +178,78 @@ class MainActivity : AppCompatActivity() {
         binding.lastUpdated.text = "Last updated: ${dateFormat.format(Date(data.lastUpdated))}"
         
         // M48 Bridge
-        updateBridgeUI(
+        updateBridgeDirectionalUI(
             bridge = data.m48Bridge,
-            statusCard = binding.m48StatusCard,
-            nameText = binding.m48Name,
-            statusText = binding.m48Status,
-            messageText = binding.m48Message,
+            eastboundContainer = binding.m48EastboundContainer,
+            eastboundStatus = binding.m48EastboundStatus,
+            eastboundText = binding.m48EastboundText,
+            westboundContainer = binding.m48WestboundContainer,
+            westboundStatus = binding.m48WestboundStatus,
+            westboundText = binding.m48WestboundText,
+            overallContainer = binding.m48OverallStatusContainer,
+            overallStatus = binding.m48OverallStatus,
             closuresText = binding.m48Closures
         )
         
         // M4 Bridge
-        updateBridgeUI(
+        updateBridgeDirectionalUI(
             bridge = data.m4Bridge,
-            statusCard = binding.m4StatusCard,
-            nameText = binding.m4Name,
-            statusText = binding.m4Status,
-            messageText = binding.m4Message,
+            eastboundContainer = binding.m4EastboundContainer,
+            eastboundStatus = binding.m4EastboundStatus,
+            eastboundText = binding.m4EastboundText,
+            westboundContainer = binding.m4WestboundContainer,
+            westboundStatus = binding.m4WestboundStatus,
+            westboundText = binding.m4WestboundText,
+            overallContainer = binding.m4OverallStatusContainer,
+            overallStatus = binding.m4OverallStatus,
             closuresText = binding.m4Closures
         )
     }
     
-    private fun updateBridgeUI(
+    private fun updateBridgeDirectionalUI(
         bridge: Bridge,
-        statusCard: View,
-        nameText: android.widget.TextView,
-        statusText: android.widget.TextView,
-        messageText: android.widget.TextView,
+        eastboundContainer: View,
+        eastboundStatus: android.widget.TextView,
+        eastboundText: android.widget.TextView,
+        westboundContainer: View,
+        westboundStatus: android.widget.TextView,
+        westboundText: android.widget.TextView,
+        overallContainer: View,
+        overallStatus: android.widget.TextView,
         closuresText: android.widget.TextView
     ) {
-        nameText.text = bridge.fullName
-        statusText.text = bridge.status.name
-        messageText.text = bridge.statusMessage
+        // Update Eastbound
+        updateDirectionUI(
+            bridge.eastbound,
+            eastboundContainer,
+            eastboundStatus,
+            eastboundText
+        )
         
-        // Set status color
-        val (backgroundColor, textColor) = when (bridge.status) {
-            BridgeStatus.OPEN -> Pair(R.color.status_open, R.color.status_open_text)
-            BridgeStatus.RESTRICTED -> Pair(R.color.status_restricted, R.color.status_restricted_text)
-            BridgeStatus.CLOSED -> Pair(R.color.status_closed, R.color.status_closed_text)
-            BridgeStatus.UNKNOWN -> Pair(R.color.status_unknown, R.color.status_unknown_text)
+        // Update Westbound
+        updateDirectionUI(
+            bridge.westbound,
+            westboundContainer,
+            westboundStatus,
+            westboundText
+        )
+        
+        // Show overall status if either direction has issues
+        val hasRestrictions = bridge.eastbound.status != BridgeStatus.OPEN || 
+                             bridge.westbound.status != BridgeStatus.OPEN
+        
+        if (hasRestrictions) {
+            overallContainer.visibility = View.VISIBLE
+            overallStatus.text = when {
+                bridge.eastbound.status == BridgeStatus.CLOSED || bridge.westbound.status == BridgeStatus.CLOSED ->
+                    "⚠️ Bridge closure in effect"
+                else -> "⚠️ Lane restrictions in effect"
+            }
+        } else {
+            overallContainer.visibility = View.GONE
         }
         
-        statusCard.setBackgroundColor(ContextCompat.getColor(this, backgroundColor))
-        statusText.setTextColor(ContextCompat.getColor(this, textColor))
-        
-        // Display closures
+        // Display closure details
         if (bridge.closures.isEmpty()) {
             closuresText.visibility = View.GONE
         } else {
@@ -200,14 +257,21 @@ class MainActivity : AppCompatActivity() {
             val closuresInfo = buildString {
                 bridge.closures.forEachIndexed { index, closure ->
                     if (index > 0) append("\n\n")
+                    
+                    val directionStr = when (closure.direction) {
+                        Direction.EASTBOUND -> "→ Eastbound: "
+                        Direction.WESTBOUND -> "← Westbound: "
+                        Direction.BOTH -> "↔️ Both directions: "
+                        Direction.UNKNOWN -> ""
+                    }
+                    
                     if (closure.isActive) {
-                        append("🔴 ACTIVE: ")
+                        append("🔴 ACTIVE - $directionStr")
                     } else {
-                        append("📅 Planned: ")
+                        append("📅 Planned - $directionStr")
                     }
                     append(closure.description)
                     
-                    // Show both start and end times for planned closures
                     if (!closure.isActive) {
                         if (closure.startTime != null) {
                             append("\nFrom: ${formatTime(closure.startTime)}")
@@ -216,7 +280,6 @@ class MainActivity : AppCompatActivity() {
                             append("\nUntil: ${formatTime(closure.endTime)}")
                         }
                     } else {
-                        // For active closures, just show end time
                         if (closure.endTime != null) {
                             append("\nUntil: ${formatTime(closure.endTime)}")
                         }
@@ -225,6 +288,45 @@ class MainActivity : AppCompatActivity() {
             }
             closuresText.text = closuresInfo
         }
+    }
+    
+    private fun updateDirectionUI(
+        directionalStatus: DirectionalStatus,
+        container: View,
+        statusIcon: android.widget.TextView,
+        statusText: android.widget.TextView
+    ) {
+        val (backgroundColor, iconColor, textColor, statusString) = when (directionalStatus.status) {
+            BridgeStatus.OPEN -> listOf(
+                R.color.status_open, 
+                R.color.status_open_icon, 
+                R.color.status_open_text, 
+                "OPEN"
+            )
+            BridgeStatus.RESTRICTED -> listOf(
+                R.color.status_restricted, 
+                R.color.status_restricted_icon, 
+                R.color.status_restricted_text, 
+                "RESTRICTED"
+            )
+            BridgeStatus.CLOSED -> listOf(
+                R.color.status_closed, 
+                R.color.status_closed_icon, 
+                R.color.status_closed_text, 
+                "CLOSED"
+            )
+            BridgeStatus.UNKNOWN -> listOf(
+                R.color.status_unknown, 
+                R.color.status_unknown_icon, 
+                R.color.status_unknown_text, 
+                "UNKNOWN"
+            )
+        }
+        
+        container.setBackgroundColor(ContextCompat.getColor(this, backgroundColor as Int))
+        statusIcon.setTextColor(ContextCompat.getColor(this, iconColor as Int))
+        statusText.setTextColor(ContextCompat.getColor(this, textColor as Int))
+        statusText.text = statusString as String
     }
     
     private fun updateCountdowns() {
@@ -258,7 +360,6 @@ class MainActivity : AppCompatActivity() {
             data.m48Bridge,
             binding.m48CountdownContainer,
             binding.m48CountdownText,
-            binding.m48CountdownIndicator,
             now
         )
         
@@ -267,7 +368,6 @@ class MainActivity : AppCompatActivity() {
             data.m4Bridge,
             binding.m4CountdownContainer,
             binding.m4CountdownText,
-            binding.m4CountdownIndicator,
             now
         )
     }
@@ -276,7 +376,6 @@ class MainActivity : AppCompatActivity() {
         bridge: Bridge,
         container: View,
         textView: android.widget.TextView,
-        indicator: View,
         now: Long
     ) {
         // Find next planned (non-active) closure
@@ -296,23 +395,14 @@ class MainActivity : AppCompatActivity() {
                     val seconds = totalSeconds % 60
                     
                     textView.text = String.format("Closing in: %02d:%02d", minutes, seconds)
-                    
-                    // Start blinking animation if not already animating
-                    if (indicator.animation == null) {
-                        val blinkAnimation = AnimationUtils.loadAnimation(this, R.anim.blink_animation)
-                        indicator.startAnimation(blinkAnimation)
-                    }
                 } else {
                     container.visibility = View.GONE
-                    indicator.clearAnimation()
                 }
             } catch (e: Exception) {
                 container.visibility = View.GONE
-                indicator.clearAnimation()
             }
         } else {
             container.visibility = View.GONE
-            indicator.clearAnimation()
         }
     }
     
@@ -331,15 +421,28 @@ class MainActivity : AppCompatActivity() {
             val zonedDateTime = ZonedDateTime.parse(isoTime, DateTimeFormatter.ISO_DATE_TIME)
             val ukTime = zonedDateTime.withZoneSameInstant(ukZone)
             
-            // Format as: "20:00 on 28 Jan" or just "20:00" if today
             val now = ZonedDateTime.now(ukZone)
-            val formatter = if (ukTime.toLocalDate() == now.toLocalDate()) {
-                DateTimeFormatter.ofPattern("HH:mm")
-            } else {
-                DateTimeFormatter.ofPattern("HH:mm 'on' dd MMM")
+            val today = now.toLocalDate()
+            val tomorrow = today.plusDays(1)
+            val eventDate = ukTime.toLocalDate()
+            
+            // Format with smart date labels
+            val dateLabel = when (eventDate) {
+                today -> "Today"
+                tomorrow -> "Tomorrow"
+                else -> {
+                    // Show full date if more than 1 day away
+                    ukTime.format(DateTimeFormatter.ofPattern("dd MMM"))
+                }
             }
             
-            ukTime.format(formatter)
+            // Format: "20:00 Today" or "20:00 Tomorrow" or "20:00 on 15 Feb"
+            val timeStr = ukTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+            if (eventDate == today || eventDate == tomorrow) {
+                "$timeStr $dateLabel"
+            } else {
+                "$timeStr on $dateLabel"
+            }
         } catch (e: Exception) {
             isoTime
         }

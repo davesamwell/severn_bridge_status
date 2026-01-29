@@ -150,6 +150,7 @@ class BridgeApiClient {
                                     "causeType" -> currentRecord.cause = text
                                     "probabilityOfOccurrence" -> currentRecord.probability = text
                                     "posList" -> currentRecord.coordinates = text
+                                    "directionOnLinearSection" -> currentRecord.direction = text
                                 }
                             }
                         }
@@ -222,15 +223,17 @@ class BridgeApiClient {
         
         for (record in closures) {
             val isActive = isCurrentlyActive(record)
+            val direction = parseDirection(record.direction)
             val closure = Closure(
                 location = record.location,
-                description = record.description,
+                description = cleanDescription(record.description),
                 isActive = isActive,
                 reason = if (isActive) "ACTIVE" else "Planned",
                 validityStatus = record.validityStatus,
                 cause = record.cause,
                 startTime = record.startTime,
-                endTime = record.endTime
+                endTime = record.endTime,
+                direction = direction
             )
             
             if (record.roadName == "M48" || record.location.contains("M48", ignoreCase = true)) {
@@ -243,20 +246,29 @@ class BridgeApiClient {
         val m48Status = determineBridgeStatus(m48Closures)
         val m4Status = determineBridgeStatus(m4Closures)
         
+        val m48Eastbound = analyzeDirectionalStatus(m48Closures, Direction.EASTBOUND)
+        val m48Westbound = analyzeDirectionalStatus(m48Closures, Direction.WESTBOUND)
+        val m4Eastbound = analyzeDirectionalStatus(m4Closures, Direction.EASTBOUND)
+        val m4Westbound = analyzeDirectionalStatus(m4Closures, Direction.WESTBOUND)
+        
         return BridgeData(
             m48Bridge = Bridge(
                 name = "M48",
                 fullName = "M48 Severn Bridge (Original Bridge, 1966)",
                 status = m48Status.first,
                 statusMessage = m48Status.second,
-                closures = m48Closures
+                closures = m48Closures,
+                eastbound = m48Eastbound,
+                westbound = m48Westbound
             ),
             m4Bridge = Bridge(
                 name = "M4",
                 fullName = "M4 Prince of Wales Bridge (Second Severn Crossing, 1996)",
                 status = m4Status.first,
                 statusMessage = m4Status.second,
-                closures = m4Closures
+                closures = m4Closures,
+                eastbound = m4Eastbound,
+                westbound = m4Westbound
             ),
             lastUpdated = now,
             totalClosuresFound = closures.size
@@ -292,6 +304,38 @@ class BridgeApiClient {
         return false
     }
     
+    private fun parseDirection(directionStr: String): Direction {
+        return when (directionStr.lowercase()) {
+            "eastbound" -> Direction.EASTBOUND
+            "westbound" -> Direction.WESTBOUND
+            "bothdirections", "both" -> Direction.BOTH
+            else -> Direction.UNKNOWN
+        }
+    }
+    
+    private fun analyzeDirectionalStatus(closures: List<Closure>, targetDirection: Direction): DirectionalStatus {
+        val directionalClosures = closures.filter { 
+            it.direction == targetDirection || it.direction == Direction.BOTH
+        }
+        
+        val activeClosures = directionalClosures.filter { it.isActive }
+        
+        val status = when {
+            activeClosures.isEmpty() -> BridgeStatus.OPEN
+            activeClosures.any { 
+                it.description.contains("carriageway closure", ignoreCase = true) ||
+                it.description.contains("bridge closed", ignoreCase = true)
+            } -> BridgeStatus.CLOSED
+            else -> BridgeStatus.RESTRICTED
+        }
+        
+        return DirectionalStatus(
+            direction = targetDirection,
+            status = status,
+            closures = directionalClosures
+        )
+    }
+    
     private fun determineBridgeStatus(closures: List<Closure>): Pair<BridgeStatus, String> {
         val activeClosures = closures.filter { it.isActive }
         
@@ -317,6 +361,16 @@ class BridgeApiClient {
         }
     }
     
+    private fun cleanDescription(description: String): String {
+        // Remove mile marker references like "201/5-196/0" or "201/5"
+        // This regex matches common patterns without being too aggressive
+        return description
+            .replace(Regex("\\s*\\d+/\\d+-\\d+/\\d+\\s*"), " ") // e.g., "201/5-196/0"
+            .replace(Regex("\\s*\\d+/\\d+\\s*$"), "")             // e.g., "201/5" at end
+            .trim()
+            .replace(Regex("\\s+"), " ")                          // Clean up extra spaces
+    }
+    
     private data class ClosureRecord(
         var roadName: String = "",
         var location: String = "",
@@ -326,6 +380,7 @@ class BridgeApiClient {
         var endTime: String = "",
         var cause: String = "",
         var probability: String = "",
-        var coordinates: String = ""
+        var coordinates: String = "",
+        var direction: String = ""
     )
 }
