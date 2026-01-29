@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var countdownRunnable: Runnable? = null
     private var currentView = "present" // Track which view is active
+    private var debugMode = false
+    private var debugData: BridgeData? = null // Store debug data for live updates
     
     // UK timezone (automatically handles BST/GMT)
     private val ukZone = ZoneId.of("Europe/London")
@@ -85,7 +87,15 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://nationalhighways.co.uk/travel-updates/the-severn-bridges/"))
             startActivity(intent)
         }
+        // Long press on title to enable debug mode (DEBUG BUILDS ONLY)
+        if (BuildConfig.DEBUG) {
+            binding.appTitle.setOnLongClickListener {
+                showDebugMenu()
+                true
+            }
+        }
         
+        // 
         // Start with Present Pain view
         showPresentPain()
     }
@@ -330,7 +340,14 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateCountdowns() {
-        val data = viewModel.bridgeData.value ?: return
+        // Use debug data if in debug mode, otherwise use ViewModel data
+        val data = if (debugMode && debugData != null) {
+            // Update debug data dynamically - transition planned closures to active
+            updateDebugDataStatus(debugData!!)
+        } else {
+            viewModel.bridgeData.value
+        } ?: return
+        
         val now = System.currentTimeMillis()
         
         // Check if any planned closures should now be active (start time has passed)
@@ -517,5 +534,157 @@ class MainActivity : AppCompatActivity() {
                 binding.futurePainList.addView(cardView)
             }
         }
+    }
+    
+    private fun showDebugMenu() {
+        val scenarios = DebugDataProvider.Scenario.values()
+        val items = scenarios.map { it.name.replace("_", " ") }.toTypedArray()
+        
+        val builder = android.app.AlertDialog.Builder(this)
+        builder.setTitle("🛠️ Debug Mode - Test Scenarios")
+        builder.setItems(items) { _, which ->
+            debugMode = true
+            val scenario = scenarios[which]
+            loadDebugData(scenario)
+        }
+        
+        if (debugMode) {
+            builder.setNeutralButton("Exit Debug Mode") { _, _ ->
+                debugMode = false
+                debugData = null
+                binding.appTitle.text = "🌉 Severn Bridges"
+                viewModel.refreshData() // Load real data
+                android.widget.Toast.makeText(this, "Debug mode disabled", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
+    }
+    
+    private fun loadDebugData(scenario: DebugDataProvider.Scenario) {
+        debugData = DebugDataProvider.getBridgeData(scenario)
+        
+        // Directly update the UI with debug data
+        binding.loadingMessage.visibility = View.GONE
+        binding.errorText.visibility = View.GONE
+        binding.presentPainContainer.visibility = if (currentView == "present") View.VISIBLE else View.GONE
+        binding.futurePainContainer.visibility = if (currentView == "future") View.VISIBLE else View.GONE
+        
+        updateUI(debugData!!)
+        if (binding.futurePainContainer.visibility == View.VISIBLE) {
+            updateFuturePainView(debugData!!)
+        }
+        
+        // Show debug indicator
+        binding.appTitle.text = "🛠️ Severn Bridge Status (DEBUG)"
+        android.widget.Toast.makeText(
+            this, 
+            "Loaded: ${scenario.name.replace("_", " ")}", 
+            android.widget.Toast.LENGTH_LONG
+        ).show()
+    }
+    
+    private fun updateDebugDataStatus(data: BridgeData): BridgeData {
+        val now = System.currentTimeMillis()
+        
+        // Function to update closure status based on current time
+        fun updateClosure(closure: Closure): Closure {
+            if (closure.startTime == null) return closure
+            
+            val startTime = parseIsoTime(closure.startTime)
+            val endTime = if (closure.endTime != null) parseIsoTime(closure.endTime) else Long.MAX_VALUE
+            
+            // If current time is between start and end, mark as active
+            val shouldBeActive = now >= startTime && now < endTime
+            
+            return if (shouldBeActive != closure.isActive) {
+                closure.copy(
+                    isActive = shouldBeActive,
+                    reason = if (shouldBeActive) "ACTIVE" else "Planned"
+                )
+            } else {
+                closure
+            }
+        }
+        
+        // Update closures for both bridges
+        val updatedM48Closures = data.m48Bridge.closures.map { updateClosure(it) }
+        val updatedM4Closures = data.m4Bridge.closures.map { updateClosure(it) }
+        
+        // Recalculate bridge status based on updated closures
+        fun recalculateStatus(closures: List<Closure>): Pair<BridgeStatus, String> {
+            val activeClosures = closures.filter { it.isActive }
+            
+            if (activeClosures.isEmpty()) {
+                val upcoming = closures.filter { !it.isActive && it.validityStatus == "planned" }
+                return if (upcoming.isNotEmpty()) {
+                    Pair(BridgeStatus.OPEN, "Open - ${upcoming.size} planned closure(s)")
+                } else {
+                    Pair(BridgeStatus.OPEN, "Open - No restrictions")
+                }
+            }
+            
+            val hasFullClosure = activeClosures.any { 
+                it.description.contains("carriageway closure", ignoreCase = true) ||
+                it.description.contains("bridge closed", ignoreCase = true)
+            }
+            
+            return if (hasFullClosure) {
+                Pair(BridgeStatus.CLOSED, "CLOSED - ${activeClosures.size} active closure(s)")
+            } else {
+                Pair(BridgeStatus.RESTRICTED, "Restricted - ${activeClosures.size} lane closure(s)")
+            }
+        }
+        
+        fun recalculateDirectionalStatus(closures: List<Closure>, targetDirection: Direction): DirectionalStatus {
+            val directionalClosures = closures.filter { 
+                it.direction == targetDirection || it.direction == Direction.BOTH
+            }
+            
+            val activeClosures = directionalClosures.filter { it.isActive }
+            
+            val status = when {
+                activeClosures.isEmpty() -> BridgeStatus.OPEN
+                activeClosures.any { 
+                    it.description.contains("carriageway closure", ignoreCase = true) ||
+                    it.description.contains("bridge closed", ignoreCase = true)
+                } -> BridgeStatus.CLOSED
+                else -> BridgeStatus.RESTRICTED
+            }
+            
+            return DirectionalStatus(
+                direction = targetDirection,
+                status = status,
+                closures = directionalClosures
+            )
+        }
+        
+        val m48Status = recalculateStatus(updatedM48Closures)
+        val m4Status = recalculateStatus(updatedM4Closures)
+        
+        val updatedData = data.copy(
+            m48Bridge = data.m48Bridge.copy(
+                status = m48Status.first,
+                statusMessage = m48Status.second,
+                closures = updatedM48Closures,
+                eastbound = recalculateDirectionalStatus(updatedM48Closures, Direction.EASTBOUND),
+                westbound = recalculateDirectionalStatus(updatedM48Closures, Direction.WESTBOUND)
+            ),
+            m4Bridge = data.m4Bridge.copy(
+                status = m4Status.first,
+                statusMessage = m4Status.second,
+                closures = updatedM4Closures,
+                eastbound = recalculateDirectionalStatus(updatedM4Closures, Direction.EASTBOUND),
+                westbound = recalculateDirectionalStatus(updatedM4Closures, Direction.WESTBOUND)
+            ),
+            lastUpdated = now
+        )
+        
+        // Store the updated debug data and update UI
+        debugData = updatedData
+        updateUI(updatedData)
+        
+        return updatedData
     }
 }
