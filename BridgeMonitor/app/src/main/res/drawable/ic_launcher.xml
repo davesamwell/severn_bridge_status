@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M0,0h108v108h-108z"/>
+    
+    <!-- Bridge icon - simple suspension bridge design -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,60 L88,60 L88,65 L20,65 Z"/>
+    
+    <!-- Left tower -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,35 L35,35 L35,65 L30,65 Z"/>
+    
+    <!-- Right tower -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M73,35 L78,35 L78,65 L73,65 Z"/>
+    
+    <!-- Suspension cables -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M32.5,35 Q54,50 75.5,35"
+        android:fillColor="#00000000"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M40,60 L40,45"
+        android:fillColor="#00000000"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M50,60 L50,48"
+        android:fillColor="#00000000"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M60,60 L60,48"
+        android:fillColor="#00000000"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M70,60 L70,45"
+        android:fillColor="#00000000"/>
+</vector>

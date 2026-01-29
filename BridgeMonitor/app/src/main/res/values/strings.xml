@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Severn Bridges</string>
+    
+    <!-- Bridge Names -->
+    <string name="m48_bridge_name">M48 Severn Bridge (Original Bridge, 1966)</string>
+    <string name="m4_bridge_name">M4 Prince of Wales Bridge (Second Severn Crossing, 1996)</string>
+    
+    <!-- Status Messages -->
+    <string name="status_open">OPEN</string>
+    <string name="status_restricted">RESTRICTED</string>
+    <string name="status_closed">CLOSED</string>
+    <string name="status_unknown">UNKNOWN</string>
+    
+    <!-- UI Text -->
+    <string name="refresh">Refresh</string>
+    <string name="last_updated">Last updated: %s</string>
+    <string name="loading">Loading bridge status...</string>
+    <string name="error_loading">Failed to load bridge status</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
+    <string name="auto_refresh_info">Auto-refreshes every 5 minutes</string>
+</resources>
