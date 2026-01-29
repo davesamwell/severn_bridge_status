@@ -11,12 +11,27 @@ enum class BridgeStatus {
     UNKNOWN
 }
 
+enum class Direction {
+    EASTBOUND,  // England -> Wales
+    WESTBOUND,  // Wales -> England
+    BOTH,
+    UNKNOWN
+}
+
+data class DirectionalStatus(
+    val direction: Direction,
+    val status: BridgeStatus,
+    val closures: List<Closure>
+)
+
 data class Bridge(
     val name: String,
     val fullName: String,
     val status: BridgeStatus,
     val statusMessage: String,
-    val closures: List<Closure>
+    val closures: List<Closure>,
+    val eastbound: DirectionalStatus,
+    val westbound: DirectionalStatus
 )
 
 data class Closure(
@@ -27,7 +42,8 @@ data class Closure(
     val validityStatus: String,
     val cause: String,
     val startTime: String?,
-    val endTime: String?
+    val endTime: String?,
+    val direction: Direction
 )
 
 data class BridgeData(

@@ -99,6 +99,10 @@ def parse_xml_closures(xml_data):
             prob = probability.text if probability is not None else "unknown"
             cause = cause_type.text if cause_type is not None else "unknown"
             
+            # Extract direction information
+            direction_elem = record.find('.//directionOnLinearSection')
+            direction = direction_elem.text if direction_elem is not None else "unknown"
+            
             closure = {
                 'road': road,
                 'location': location,
@@ -108,7 +112,8 @@ def parse_xml_closures(xml_data):
                 'cause': cause,
                 'start': start_time.text if start_time is not None else None,
                 'end': end_time.text if end_time is not None else None,
-                'coordinates': pos_list.text if pos_list is not None else None
+                'coordinates': pos_list.text if pos_list is not None else None,
+                'direction': direction
             }
             closures.append(closure)
     
@@ -204,13 +209,44 @@ def is_currently_active(closure):
     
     return False, f"Unknown status: {status}"
 
+def clean_description(description):
+    """Remove mile marker references like 201/5-196/0 for better readability"""
+    import re
+    # Remove patterns like "201/5-196/0" or "201/5" at the end
+    description = re.sub(r'\s*\d+/\d+-\d+/\d+\s*', ' ', description)  # Range markers
+    description = re.sub(r'\s*\d+/\d+\s*$', '', description)           # Single marker at end
+    return re.sub(r'\s+', ' ', description).strip()                    # Clean extra spaces
+
+def analyze_directional_status(closures, direction):
+    """
+    Analyze status for a specific direction
+    direction: 'eastBound' or 'westBound'
+    """
+    directional_closures = [c for c in closures if 
+                           c.get('direction', '').lower() == direction.lower() or 
+                           c.get('direction', '').lower() == 'bothdirections']
+    
+    active_closures = [c for c in directional_closures if c['is_active']]
+    
+    if not active_closures:
+        return "OPEN", directional_closures
+    
+    # Check for full closure
+    for closure in active_closures:
+        if 'carriageway closure' in closure['description'].lower():
+            return "CLOSED", directional_closures
+    
+    return "RESTRICTED", directional_closures
+
 def get_bridge_current_status(closures):
     """
     Determine the CURRENT STATUS of each Severn Bridge
-    Returns: dict with M4 and M48 status
+    Returns: dict with M4 and M48 status including directional info
     """
-    m4_status = {"bridge": "M4 Prince of Wales Bridge", "status": "OPEN", "closures": []}
-    m48_status = {"bridge": "M48 Severn Bridge", "status": "OPEN", "closures": []}
+    m4_status = {"bridge": "M4 Prince of Wales Bridge", "status": "OPEN", "closures": [], 
+                 "eastbound": "OPEN", "westbound": "OPEN"}
+    m48_status = {"bridge": "M48 Severn Bridge", "status": "OPEN", "closures": [],
+                  "eastbound": "OPEN", "westbound": "OPEN"}
     
     for closure in closures:
         if check_severn_bridge(closure):
@@ -218,14 +254,15 @@ def get_bridge_current_status(closures):
             
             closure_info = {
                 'location': closure['location'],
-                'description': closure['description'],
+                'description': clean_description(closure['description']),
                 'is_active': is_active,
                 'reason': reason,
                 'status': closure['status'],
                 'probability': closure['probability'],
                 'cause': closure['cause'],
                 'start': closure['start'],
-                'end': closure['end']
+                'end': closure['end'],
+                'direction': closure.get('direction', 'unknown')
             }
             
             # Categorize by bridge
@@ -237,6 +274,17 @@ def get_bridge_current_status(closures):
                 m4_status['closures'].append(closure_info)
                 if is_active:
                     m4_status['status'] = "CLOSED" if 'carriageway closure' in closure['description'].lower() else "RESTRICTED"
+    
+    # Analyze directional status
+    m48_east_status, _ = analyze_directional_status(m48_status['closures'], 'eastBound')
+    m48_west_status, _ = analyze_directional_status(m48_status['closures'], 'westBound')
+    m48_status['eastbound'] = m48_east_status
+    m48_status['westbound'] = m48_west_status
+    
+    m4_east_status, _ = analyze_directional_status(m4_status['closures'], 'eastBound')
+    m4_west_status, _ = analyze_directional_status(m4_status['closures'], 'westBound')
+    m4_status['eastbound'] = m4_east_status
+    m4_status['westbound'] = m4_west_status
     
     return m4_status, m48_status
 
@@ -274,11 +322,27 @@ def main():
     # M48 Status
     status_symbol_48 = "🟢" if m48_status['status'] == "OPEN" else "🔴" if m48_status['status'] == "CLOSED" else "🟡"
     print(f"{status_symbol_48} M48 SEVERN BRIDGE (Original Bridge, 1966)")
-    print(f"   Status: {m48_status['status']}")
+    print(f"   Overall Status: {m48_status['status']}")
+    
+    # Directional Status
+    east_symbol = "🟢" if m48_status['eastbound'] == "OPEN" else "🔴" if m48_status['eastbound'] == "CLOSED" else "🟡"
+    west_symbol = "🟢" if m48_status['westbound'] == "OPEN" else "🔴" if m48_status['westbound'] == "CLOSED" else "🟡"
+    print(f"   → Eastbound (Wales → England): {east_symbol} {m48_status['eastbound']}")
+    print(f"   ← Westbound (England → Wales): {west_symbol} {m48_status['westbound']}")
     if m48_status['closures']:
         for closure in m48_status['closures']:
+            direction_str = ""
+            if 'direction' in closure:
+                direction = closure.get('direction', 'unknown').lower()
+                if direction == 'eastbound':
+                    direction_str = "→ Eastbound: "
+                elif direction == 'westbound':
+                    direction_str = "← Westbound: "
+                elif direction == 'bothdirections':
+                    direction_str = "↔️ Both directions: "
+            
             if closure['is_active']:
-                print(f"   ⚠️  ACTIVE CLOSURE: {closure['location']}")
+                print(f"   ⚠️  ACTIVE CLOSURE - {direction_str}{closure['location']}")
                 print(f"      {closure['description']}")
                 print(f"      Reason: {closure['reason']}")
                 print(f"      Cause: {closure['cause']}")
@@ -310,11 +374,28 @@ def main():
     # M4 Status
     status_symbol_4 = "🟢" if m4_status['status'] == "OPEN" else "🔴" if m4_status['status'] == "CLOSED" else "🟡"
     print(f"{status_symbol_4} M4 PRINCE OF WALES BRIDGE (Second Severn Crossing, 1996)")
-    print(f"   Status: {m4_status['status']}")
+    print(f"   Overall Status: {m4_status['status']}")
+    
+    # Directional Status
+    east_symbol = "🟢" if m4_status['eastbound'] == "OPEN" else "🔴" if m4_status['eastbound'] == "CLOSED" else "🟡"
+    west_symbol = "🟢" if m4_status['westbound'] == "OPEN" else "🔴" if m4_status['westbound'] == "CLOSED" else "🟡"
+    print(f"   → Eastbound (Wales → England): {east_symbol} {m4_status['eastbound']}")
+    print(f"   ← Westbound (England → Wales): {west_symbol} {m4_status['westbound']}")
     if m4_status['closures']:
         for closure in m4_status['closures']:
+            direction_str = ""
+            if 'direction' in closure:
+                direction = closure.get('direction', 'unknown').lower()
+                if direction == 'eastbound':
+                    direction_str = "→ Eastbound: "
+                elif direction == 'westbound':
+                    direction_str = "← Westbound: "
+                elif direction == 'bothdirections':
+                    direction_str = "↔️ Both directions: "
+            
             if closure['is_active']:
-                print(f"   ⚠️  ACTIVE CLOSURE: {closure['location']}")
+                print(f"   ⚠️  ACTIVE CLOSURE - {direction_str}{closure['location']}")
+                print(f"      {closure['description']}")
                 if closure['start']:
                     try:
                         start_time = datetime.fromisoformat(closure['start'].replace('Z', '+00:00'))
@@ -358,7 +439,7 @@ def main():
     if upcoming:
         for idx, closure in enumerate(upcoming, 1):
             print(f"\n{idx}. {closure['road']} - {closure['location']}")
-            print(f"   {closure['description']}")
+            print(f"   {clean_description(closure['description'])}")
             if closure['start']:
                 try:
                     start_time = datetime.fromisoformat(closure['start'].replace('Z', '+00:00'))
