@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 /**
  * API client for National Highways bridge status
  */
-class BridgeApiClient {
+open class BridgeApiClient {
     
     companion object {
         // API key is loaded from BuildConfig (injected at compile time from local.properties)
@@ -304,7 +304,7 @@ class BridgeApiClient {
         return false
     }
     
-    private fun parseDirection(directionStr: String): Direction {
+    protected fun parseDirection(directionStr: String): Direction {
         return when (directionStr.lowercase()) {
             "eastbound" -> Direction.EASTBOUND
             "westbound" -> Direction.WESTBOUND
@@ -313,7 +313,7 @@ class BridgeApiClient {
         }
     }
     
-    private fun analyzeDirectionalStatus(closures: List<Closure>, targetDirection: Direction): DirectionalStatus {
+    protected fun analyzeDirectionalStatus(closures: List<Closure>, targetDirection: Direction): DirectionalStatus {
         val directionalClosures = closures.filter { 
             it.direction == targetDirection || it.direction == Direction.BOTH
         }
@@ -361,7 +361,7 @@ class BridgeApiClient {
         }
     }
     
-    private fun cleanDescription(description: String): String {
+    protected fun cleanDescription(description: String): String {
         // Remove mile marker references like "201/5-196/0" or "201/5"
         // This regex matches common patterns without being too aggressive
         return description
