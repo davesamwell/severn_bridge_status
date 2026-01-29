@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#FFF9C4">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/plannedStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📅 PLANNED"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:background="@android:color/white"
+            android:padding="4dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="visible" />
+
+        <TextView
+            android:id="@+id/plannedBridgeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="M48 Severn Bridge"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:id="@+id/plannedLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="J1 to J2"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/plannedDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carriageway closure for maintenance"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/plannedTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="From: 20:00\nUntil: 06:00"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#F57C00"
+            android:paddingTop="4dp"
+            android:background="@android:color/white"
+            android:padding="8dp" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipeRefresh"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🌉 Severn Bridges Status"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:gravity="center"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                android:id="@+id/lastUpdated"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Last updated: --:--:--"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:paddingBottom="8dp"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <!-- View Toggle Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingBottom="16dp">
+
+                <Button
+                    android:id="@+id/presentPainButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="🚨 Present Pain"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/futurePainButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="📅 Future Pain"
+                    android:textSize="14sp"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+            </LinearLayout>
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <!-- Loading Message -->
+            <LinearLayout
+                android:id="@+id/loadingMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌉"
+                    android:textSize="48sp"
+                    android:paddingBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Loading bridge status..."
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fetching latest data from National Highways"
+                    android:textSize="14sp"
+                    android:paddingTop="8dp"
+                    android:textColor="?android:attr/textColorSecondary" />
+            </LinearLayout>
+
+            <!-- Error Text -->
+            <TextView
+                android:id="@+id/errorText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone" />
+
+            <!-- Present Pain Container (Current Status) -->
+            <LinearLayout
+                android:id="@+id/presentPainContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+            <!-- M48 Bridge Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/m48StatusCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/m48Name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="M48 Severn Bridge"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:paddingBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/m48Status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="OPEN"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:paddingBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/m48Message"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No restrictions"
+                        android:textSize="16sp"
+                        android:paddingBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/m48Closures"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        android:paddingTop="8dp"
+                        android:background="@android:color/white"
+                        android:padding="8dp" />
+
+                    <!-- Countdown Timer -->
+                    <LinearLayout
+                        android:id="@+id/m48CountdownContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:visibility="gone"
+                        android:paddingTop="12dp">
+
+                        <View
+                            android:id="@+id/m48CountdownIndicator"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:background="@drawable/flashing_indicator"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/m48CountdownText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Closing in: 60:00"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/holo_red_dark" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- M4 Bridge Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/m4StatusCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/m4Name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="M4 Prince of Wales Bridge"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:paddingBottom="8dp" />
+
+                    <!-- Countdown Timer -->
+                    <LinearLayout
+                        android:id="@+id/m4CountdownContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:visibility="gone"
+                        android:paddingTop="12dp">
+
+                        <View
+                            android:id="@+id/m4CountdownIndicator"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:background="@drawable/flashing_indicator"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/m4CountdownText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Closing in: 60:00"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/holo_red_dark" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/m4Status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="OPEN"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:paddingBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/m4Message"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No restrictions"
+                        android:textSize="16sp"
+                        android:paddingBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/m4Closures"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        android:paddingTop="8dp"
+                        android:background="@android:color/white"
+                        android:padding="8dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Refresh Button -->
+            <Button
+                android:id="@+id/refreshButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔄 Refresh Now"
+                android:textSize="16sp"
+                android:padding="12dp" />
+
+            <!-- Info Text -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ℹ️ Auto-refreshes every 5 minutes\n• Pull down to refresh\n• Green = Open\n• Yellow = Restricted\n• Red = Closed"
+                android:textSize="12sp"
+                android:paddingTop="16dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:gravity="center" />
+
+            </LinearLayout>
+            <!-- End Present Pain Container -->
+
+            <!-- Future Pain Container (Planned Works) -->
+            <LinearLayout
+                android:id="@+id/futurePainContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📅 Upcoming Planned Works"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="16dp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/futurePainEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="✓ No planned closures scheduled"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:padding="32dp"
+                    android:visibility="gone"
+                    android:textColor="?android:attr/textColorSecondary" />
+
+                <LinearLayout
+                    android:id="@+id/futurePainList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+            <!-- End Future Pain Container -->
+
+            <!-- Version -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="v0.1.0"
+                android:textSize="10sp"
+                android:paddingTop="8dp"
+                android:textColor="?android:attr/textColorTertiary"
+                android:gravity="center" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

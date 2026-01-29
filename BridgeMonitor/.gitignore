@@ -1,0 +1,35 @@
+# Gradle files
+.gradle/
+build/
+*/build/
+
+# Local configuration file (contains API keys)
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild
+.cxx
+
+# Compiled files
+*.apk
+*.ap_
+*.dex
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Signing files
+*.jks
+*.keystore
+
+# Sensitive data
+api_primary_key.txt
+*.key
+secrets.properties
