@@ -290,7 +290,7 @@ object DebugDataProvider {
     private fun createBothBridgesClosedData(now: Long): BridgeData {
         val m48Closure = Closure(
             location = "M48 J1-J2",
-            description = "M48 both directions closed due to emergency repairs",
+            description = "M48 both directions carriageway closure due to emergency repairs",
             isActive = true,
             reason = "ACTIVE",
             validityStatus = "active",
@@ -674,9 +674,35 @@ object DebugDataProvider {
     }
     
     private fun createMultipleClosuresData(now: Long, tonight: String, tomorrow: String): BridgeData {
-        val activeClosure = Closure(
+        // M48: Eastbound restricted, Westbound closed
+        val m48EastboundRestriction = Closure(
+            location = "M48 J1-J2",
+            description = "M48 eastbound lane restriction due to roadworks",
+            isActive = true,
+            reason = "ACTIVE",
+            validityStatus = "active",
+            cause = "roadMaintenance",
+            startTime = Instant.now().minusSeconds(1800).toString(),
+            endTime = tonight,
+            direction = Direction.EASTBOUND
+        )
+        
+        val m48WestboundClosure = Closure(
+            location = "M48 J1-J2",
+            description = "M48 westbound carriageway closure due to incident",
+            isActive = true,
+            reason = "ACTIVE",
+            validityStatus = "active",
+            cause = "accident",
+            startTime = Instant.now().minusSeconds(900).toString(),
+            endTime = Instant.now().plusSeconds(3600).toString(),
+            direction = Direction.WESTBOUND
+        )
+        
+        // M4: Eastbound closed, Westbound open
+        val m4EastboundClosure = Closure(
             location = "M4 J22-J23",
-            description = "M4 eastbound lane 1 closure for roadworks",
+            description = "M4 eastbound carriageway closure for emergency repairs",
             isActive = true,
             reason = "ACTIVE",
             validityStatus = "active",
@@ -686,39 +712,27 @@ object DebugDataProvider {
             direction = Direction.EASTBOUND
         )
         
-        val plannedClosure = Closure(
-            location = "M48 J1-J2",
-            description = "M48 westbound lane closure for resurfacing",
-            isActive = false,
-            reason = "Planned",
-            validityStatus = "planned",
-            cause = "roadMaintenance",
-            startTime = tonight,
-            endTime = tomorrow,
-            direction = Direction.WESTBOUND
-        )
-        
         return BridgeData(
             m48Bridge = Bridge(
                 name = "M48",
                 fullName = "M48 Severn Bridge (Original Bridge, 1966)",
-                status = BridgeStatus.OPEN,
-                statusMessage = "Open - 1 planned closure(s)",
-                closures = listOf(plannedClosure),
-                eastbound = DirectionalStatus(Direction.EASTBOUND, BridgeStatus.OPEN, emptyList()),
-                westbound = DirectionalStatus(Direction.WESTBOUND, BridgeStatus.OPEN, listOf(plannedClosure))
+                status = BridgeStatus.CLOSED,
+                statusMessage = "CLOSED - 1 active closure(s), 1 restriction(s)",
+                closures = listOf(m48EastboundRestriction, m48WestboundClosure),
+                eastbound = DirectionalStatus(Direction.EASTBOUND, BridgeStatus.RESTRICTED, listOf(m48EastboundRestriction)),
+                westbound = DirectionalStatus(Direction.WESTBOUND, BridgeStatus.CLOSED, listOf(m48WestboundClosure))
             ),
             m4Bridge = Bridge(
                 name = "M4",
                 fullName = "M4 Prince of Wales Bridge (Second Severn Crossing, 1996)",
-                status = BridgeStatus.RESTRICTED,
-                statusMessage = "Restricted - 1 lane closure(s)",
-                closures = listOf(activeClosure),
-                eastbound = DirectionalStatus(Direction.EASTBOUND, BridgeStatus.RESTRICTED, listOf(activeClosure)),
+                status = BridgeStatus.CLOSED,
+                statusMessage = "CLOSED - 1 active closure(s)",
+                closures = listOf(m4EastboundClosure),
+                eastbound = DirectionalStatus(Direction.EASTBOUND, BridgeStatus.CLOSED, listOf(m4EastboundClosure)),
                 westbound = DirectionalStatus(Direction.WESTBOUND, BridgeStatus.OPEN, emptyList())
             ),
             lastUpdated = now,
-            totalClosuresFound = 2
+            totalClosuresFound = 3
         )
     }
     

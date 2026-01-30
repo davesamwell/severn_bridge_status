@@ -273,19 +273,14 @@ class MainActivity : AppCompatActivity() {
                 bridge.closures.forEachIndexed { index, closure ->
                     if (index > 0) append("\n\n")
                     
-                    val directionStr = when (closure.direction) {
-                        Direction.EASTBOUND -> "→ Eastbound: "
-                        Direction.WESTBOUND -> "← Westbound: "
-                        Direction.BOTH -> "↔️ Both directions: "
-                        Direction.UNKNOWN -> ""
-                    }
+                    // Determine if it's a restriction or full closure
+                    val isRestriction = closure.description.contains("lane closure", ignoreCase = true) ||
+                                      closure.description.contains("lane restriction", ignoreCase = true)
                     
                     if (closure.isActive) {
-                        append("🔴 ACTIVE - $directionStr")
+                        val indicator = if (isRestriction) "🟠" else "🔴"
+                        append("$indicator ACTIVE - ")
                     } else {
-                        // Determine if it's a restriction or full closure
-                        val isRestriction = closure.description.contains("lane closure", ignoreCase = true) ||
-                                          closure.description.contains("lane restriction", ignoreCase = true)
                         val typeLabel = if (isRestriction) "Restriction" else "Closure"
                         append("📅 Planned $typeLabel: ")
                     }
@@ -537,10 +532,18 @@ class MainActivity : AppCompatActivity() {
                 
                 // Show status badge
                 if (closure.isActive) {
-                    statusBadge.text = "🔴 ACTIVE NOW"
+                    // Determine if it's a restriction or full closure
+                    val isRestriction = closure.description.contains("lane closure", ignoreCase = true) ||
+                                      closure.description.contains("lane restriction", ignoreCase = true)
+                    
+                    if (isRestriction) {
+                        statusBadge.text = "🟠 ACTIVE NOW"
+                        cardView.setCardBackgroundColor(ContextCompat.getColor(this, R.color.status_restricted))
+                    } else {
+                        statusBadge.text = "🔴 ACTIVE NOW"
+                        cardView.setCardBackgroundColor(ContextCompat.getColor(this, R.color.status_closed))
+                    }
                     statusBadge.visibility = View.VISIBLE
-                    // Use red background for active closures
-                    cardView.setCardBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light))
                 } else {
                     statusBadge.text = "📅 PLANNED"
                     statusBadge.visibility = View.VISIBLE
