@@ -1,6 +1,9 @@
 # API Key - Users must obtain their own from National Highways
 api_primary_key.txt
 
+# Android SDK path - User-specific location
+android_sdk_path.txt
+
 # Python
 __pycache__/
 *.py[cod]

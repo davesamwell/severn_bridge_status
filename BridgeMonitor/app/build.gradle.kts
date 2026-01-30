@@ -1,20 +1,59 @@
 import java.util.Properties
 import java.io.FileInputStream
+import java.io.FileOutputStream
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
 
-// Read API key from local.properties
+// Read or generate local.properties from external config files
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
+
+// Read API key from api_primary_key.txt in project root
+val apiKeyFile = rootProject.file("../api_primary_key.txt")
+val apiKey: String = if (apiKeyFile.exists()) {
+    apiKeyFile.readText().trim()
+} else {
+    // Fallback to local.properties if api_primary_key.txt doesn't exist
+    if (localPropertiesFile.exists()) {
+        localProperties.load(FileInputStream(localPropertiesFile))
+        localProperties.getProperty("NATIONAL_HIGHWAYS_API_KEY") ?: ""
+    } else {
+        ""
+    }
 }
 
-// Get API key from local.properties, fallback to empty string if not found
-val apiKey: String = localProperties.getProperty("NATIONAL_HIGHWAYS_API_KEY") ?: ""
+// Read Android SDK path from android_sdk_path.txt in project root
+val sdkPathFile = rootProject.file("../android_sdk_path.txt")
+val sdkPath: String = if (sdkPathFile.exists()) {
+    sdkPathFile.readText().trim()
+} else {
+    // Fallback to local.properties or ANDROID_HOME
+    if (localPropertiesFile.exists()) {
+        localProperties.load(FileInputStream(localPropertiesFile))
+        localProperties.getProperty("sdk.dir") ?: System.getenv("ANDROID_HOME") ?: ""
+    } else {
+        System.getenv("ANDROID_HOME") ?: ""
+    }
+}
+
+// Update local.properties with values from config files (if they exist)
+if (apiKeyFile.exists() || sdkPathFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+    
+    if (apiKeyFile.exists() && apiKey.isNotEmpty()) {
+        localProperties.setProperty("NATIONAL_HIGHWAYS_API_KEY", apiKey)
+    }
+    
+    if (sdkPathFile.exists() && sdkPath.isNotEmpty()) {
+        localProperties.setProperty("sdk.dir", sdkPath)
+    }
+    
+    // Write updated properties back to local.properties
+    localProperties.store(FileOutputStream(localPropertiesFile), "Auto-generated from config files")
+}
 
 android {
     namespace = "com.severn.bridgemonitor"
