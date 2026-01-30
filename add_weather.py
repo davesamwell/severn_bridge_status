@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""
+Script to add weather functionality to bridge_monitor.py
+"""
+
+# Read the original file
+with open('bridge_monitor.py', 'r') as f:
+    content = f.read()
+
+# Add import json after hashlib
+content = content.replace(
+    'import hashlib',
+    'import hashlib\nimport json'
+)
+
+# Add weather URL after BASE_URL
+content = content.replace(
+    'BASE_URL = "https://api.data.nationalhighways.co.uk/roads/v2.0/closures"',
+    '''BASE_URL = "https://api.data.nationalhighways.co.uk/roads/v2.0/closures"
+WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=51.6&longitude=-2.6&hourly=temperature_2m,precipitation_probability,windspeed_10m,windgusts_10m&timezone=Europe/London&forecast_days=1"'''
+)
+
+# Add weather cache after _cache
+content = content.replace(
+    "_cache = {'hash': None, 'data': None}",
+    """_cache = {'hash': None, 'data': None}
+_weather_cache = {'timestamp': None, 'data': None}
+WEATHER_CACHE_DURATION = 1800  # 30 minutes in seconds
+
+# ANSI Color codes
+COLOR_GREEN = '\\033[92m'
+COLOR_YELLOW = '\\033[93m'
+COLOR_RED = '\\033[91m'
+COLOR_RESET = '\\033[0m'
+COLOR_BOLD = '\\033[1m'"""
+)
+
+# Add weather functions before fetch_closures
+weather_functions = '''
+def fetch_weather():
+    """Fetch weather data from Open-Meteo API (no API key needed)"""
+    now = datetime.now(timezone.utc)
+    
+    # Check cache
+    if _weather_cache['timestamp'] is not None and _weather_cache['data'] is not None:
+        cache_age = (now - _weather_cache['timestamp']).total_seconds()
+        if cache_age < WEATHER_CACHE_DURATION:
+            print(f"Using cached weather data ({int(cache_age/60)} minutes old)")
+            return _weather_cache['data']
+    
+    print("Fetching weather from Open-Meteo API...")
+    
+    try:
+        req = urllib.request.Request(WEATHER_URL)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                print(f"✓ Weather API call successful")
+                data = json.loads(response.read().decode('utf-8'))
+                
+                # Cache the result
+                _weather_cache['timestamp'] = now
+                _weather_cache['data'] = data
+                
+                return data
+            else:
+                print(f"✗ Weather API call failed (Status: {response.status})")
+                return None
+    except Exception as e:
+        print(f"✗ Weather API call failed: {e}")
+        return None
+
+def parse_weather_data(weather_data):
+    """Parse Open-Meteo weather response and extract current conditions"""
+    if not weather_data or 'hourly' not in weather_data:
+        return None
+    
+    hourly = weather_data['hourly']
+    current_idx = 0
+    
+    temperature = hourly['temperature_2m'][current_idx] if 'temperature_2m' in hourly else None
+    rain_prob = hourly['precipitation_probability'][current_idx] if 'precipitation_probability' in hourly else None
+    wind_speed_kmh = hourly['windspeed_10m'][current_idx] if 'windspeed_10m' in hourly else None
+    wind_speed_mph = wind_speed_kmh * 0.621371 if wind_speed_kmh is not None else None
+    
+    max_gust_kmh = max(hourly['windgusts_10m']) if 'windgusts_10m' in hourly else None
+    max_gust_mph = max_gust_kmh * 0.621371 if max_gust_kmh is not None else None
+    
+    return {
+        'temperature': temperature,
+        'rain_probability': rain_prob,
+        'wind_speed_mph': wind_speed_mph,
+        'max_gust_mph': max_gust_mph
+    }
+
+def get_wind_risk_level(wind_mph):
+    """Determine wind risk level based on mph"""
+    if wind_mph is None:
+        return 'unknown', COLOR_RESET
+    if wind_mph >= 41:
+        return 'HIGH RISK - Likely closure', COLOR_RED
+    elif wind_mph >= 26:
+        return 'MONITOR - Possible restrictions', COLOR_YELLOW
+    else:
+        return 'Safe', COLOR_GREEN
+
+def display_weather(weather):
+    """Display weather information with color coding"""
+    if not weather:
+        print("❌ Weather data unavailable")
+        return
+    
+    print("=" * 70)
+    print("🌤️  SEVERN BRIDGE WEATHER - TODAY")
+    print("=" * 70)
+    print()
+    
+    if weather['temperature'] is not None:
+        print(f"🌡️  Temperature: {weather['temperature']:.1f}°C")
+    
+    if weather['rain_probability'] is not None:
+        print(f"🌧️  Rain Probability: {weather['rain_probability']}%")
+    
+    print()
+    
+    if weather['wind_speed_mph'] is not None:
+        risk_level, color = get_wind_risk_level(weather['wind_speed_mph'])
+        print(f"💨 Current Wind Speed: {color}{weather['wind_speed_mph']:.1f} mph{COLOR_RESET}")
+        print(f"   Status: {color}{COLOR_BOLD}{risk_level}{COLOR_RESET}")
+    
+    if weather['max_gust_mph'] is not None:
+        risk_level, color = get_wind_risk_level(weather['max_gust_mph'])
+        print()
+        print(f"🌪️  Max Wind Gust Today: {color}{weather['max_gust_mph']:.1f} mph{COLOR_RESET}")
+        print(f"   Status: {color}{COLOR_BOLD}{risk_level}{COLOR_RESET}")
+    
+    print()
+    print("Wind Risk Levels:")
+    print(f"  {COLOR_GREEN}• 0-25 mph: Safe{COLOR_RESET}")
+    print(f"  {COLOR_YELLOW}• 26-40 mph: Monitor - possible restrictions{COLOR_RESET}")
+    print(f"  {COLOR_RED}• 41+ mph: High risk - likely closure{COLOR_RESET}")
+    print()
+
+'''
+
+content = content.replace('def fetch_closures():', weather_functions + 'def fetch_closures():')
+
+# Add weather display in main()
+content = content.replace(
+    '''    print()
+    
+    # Fetch bridge data
+    xml_data = fetch_closures()''',
+    '''    print()
+    
+    # Fetch and display weather FIRST
+    weather_data = fetch_weather()
+    weather = parse_weather_data(weather_data) if weather_data else None
+    print()
+    display_weather(weather)
+    
+    # Fetch bridge data
+    xml_data = fetch_closures()'''
+)
+
+# Add note about weather in final notes
+content = content.replace(
+    '''    print("   • Check 'cause' field for reason (e.g., poorEnvironment for weather)")
+    print("=" * 70)''',
+    '''    print("   • Check 'cause' field for reason (e.g., poorEnvironment for weather)")
+    print("   • Weather data updates every 30 minutes")
+    print("=" * 70)'''
+)
+
+# Write the modified content
+with open('bridge_monitor.py', 'w') as f:
+    f.write(content)
+
+print("✓ Weather functionality added successfully!")
+print("Run: python3 bridge_monitor.py")

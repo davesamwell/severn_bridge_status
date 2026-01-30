@@ -70,10 +70,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.refreshData()
         }
         
-        binding.refreshButton.setOnClickListener {
-            viewModel.refreshData()
-        }
-        
         binding.presentPainButton.setOnClickListener {
             showPresentPain()
         }
@@ -113,6 +109,15 @@ class MainActivity : AppCompatActivity() {
                 if (binding.futurePainContainer.visibility == View.VISIBLE) {
                     updateFuturePainView(data)
                 }
+            }
+        }
+        
+        viewModel.weatherData.observe(this) { weather ->
+            if (weather != null) {
+                updateWeatherUI(weather)
+                binding.weatherCard.visibility = View.VISIBLE
+            } else {
+                binding.weatherCard.visibility = View.GONE
             }
         }
         
@@ -278,7 +283,11 @@ class MainActivity : AppCompatActivity() {
                     if (closure.isActive) {
                         append("🔴 ACTIVE - $directionStr")
                     } else {
-                        append("📅 Planned - $directionStr")
+                        // Determine if it's a restriction or full closure
+                        val isRestriction = closure.description.contains("lane closure", ignoreCase = true) ||
+                                          closure.description.contains("lane restriction", ignoreCase = true)
+                        val typeLabel = if (isRestriction) "Restriction" else "Closure"
+                        append("📅 Planned $typeLabel: ")
                     }
                     append(closure.description)
                     
@@ -411,7 +420,25 @@ class MainActivity : AppCompatActivity() {
                     val minutes = totalSeconds / 60
                     val seconds = totalSeconds % 60
                     
-                    textView.text = String.format("Closing in: %02d:%02d", minutes, seconds)
+                    // Determine closure type and direction for message
+                    val isRestriction = nextPlannedClosure.description.contains("lane closure", ignoreCase = true) ||
+                                       nextPlannedClosure.description.contains("lane restriction", ignoreCase = true)
+                    
+                    val isFullClosure = (nextPlannedClosure.description.contains("carriageway closure", ignoreCase = true) ||
+                                        nextPlannedClosure.description.contains("bridge closed", ignoreCase = true)) &&
+                                       nextPlannedClosure.direction == Direction.BOTH
+                    
+                    val message = when {
+                        isFullClosure -> "Full closure in"
+                        isRestriction && nextPlannedClosure.direction == Direction.EASTBOUND -> "Eastbound restriction in"
+                        isRestriction && nextPlannedClosure.direction == Direction.WESTBOUND -> "Westbound restriction in"
+                        nextPlannedClosure.direction == Direction.EASTBOUND -> "Eastbound closing in"
+                        nextPlannedClosure.direction == Direction.WESTBOUND -> "Westbound closing in"
+                        nextPlannedClosure.direction == Direction.BOTH -> "Full closure in"
+                        else -> "Closing in"
+                    }
+                    
+                    textView.text = String.format("$message: %02d:%02d", minutes, seconds)
                 } else {
                     container.visibility = View.GONE
                 }
@@ -537,15 +564,74 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showDebugMenu() {
-        val scenarios = DebugDataProvider.Scenario.values()
-        val items = scenarios.map { it.name.replace("_", " ") }.toTypedArray()
+        val options = listOf(
+            "=== Status Scenarios ===" to null,
+            "All Open" to DebugDataProvider.Scenario.ALL_OPEN,
+            "" to null,
+            "=== M48 Active ===" to null,
+            "M48 Eastbound Closed" to DebugDataProvider.Scenario.M48_EASTBOUND_CLOSED,
+            "M48 Westbound Closed" to DebugDataProvider.Scenario.M48_WESTBOUND_CLOSED,
+            "M48 Full Closed" to DebugDataProvider.Scenario.M48_FULL_CLOSED,
+            "M48 Eastbound Restricted" to DebugDataProvider.Scenario.M48_EASTBOUND_RESTRICTED,
+            "M48 Westbound Restricted" to DebugDataProvider.Scenario.M48_WESTBOUND_RESTRICTED,
+            "" to null,
+            "=== M4 Active ===" to null,
+            "M4 Eastbound Closed" to DebugDataProvider.Scenario.M4_EASTBOUND_CLOSED,
+            "M4 Westbound Closed" to DebugDataProvider.Scenario.M4_WESTBOUND_CLOSED,
+            "M4 Full Closed" to DebugDataProvider.Scenario.M4_FULL_CLOSED,
+            "M4 Eastbound Restricted" to DebugDataProvider.Scenario.M4_EASTBOUND_RESTRICTED,
+            "M4 Westbound Restricted" to DebugDataProvider.Scenario.M4_WESTBOUND_RESTRICTED,
+            "" to null,
+            "=== M48 Countdown (5s) ===" to null,
+            "M48: Eastbound Restriction" to DebugDataProvider.Scenario.M48_CD_EASTBOUND_RESTRICTION,
+            "M48: Westbound Restriction" to DebugDataProvider.Scenario.M48_CD_WESTBOUND_RESTRICTION,
+            "M48: Eastbound Closure" to DebugDataProvider.Scenario.M48_CD_EASTBOUND_CLOSURE,
+            "M48: Westbound Closure" to DebugDataProvider.Scenario.M48_CD_WESTBOUND_CLOSURE,
+            "M48: Full Closure" to DebugDataProvider.Scenario.M48_CD_FULL_CLOSURE,
+            "" to null,
+            "=== M4 Countdown (5s) ===" to null,
+            "M4: Eastbound Restriction" to DebugDataProvider.Scenario.M4_CD_EASTBOUND_RESTRICTION,
+            "M4: Westbound Restriction" to DebugDataProvider.Scenario.M4_CD_WESTBOUND_RESTRICTION,
+            "M4: Eastbound Closure" to DebugDataProvider.Scenario.M4_CD_EASTBOUND_CLOSURE,
+            "M4: Westbound Closure" to DebugDataProvider.Scenario.M4_CD_WESTBOUND_CLOSURE,
+            "M4: Full Closure" to DebugDataProvider.Scenario.M4_CD_FULL_CLOSURE,
+            "" to null,
+            "=== Other ===" to null,
+            "Both Bridges Closed" to DebugDataProvider.Scenario.BOTH_BRIDGES_CLOSED,
+            "Multiple Closures" to DebugDataProvider.Scenario.MULTIPLE_CLOSURES,
+            "Future Works Only" to DebugDataProvider.Scenario.FUTURE_WORKS_ONLY,
+            "" to null,
+            "=== Weather Scenarios ===" to null,
+            "☀️ Safe Conditions" to DebugDataProvider.WeatherScenario.SAFE_CONDITIONS,
+            "🌤️ Monitor Winds" to DebugDataProvider.WeatherScenario.MONITOR_WINDS,
+            "⚠️ High Wind Risk" to DebugDataProvider.WeatherScenario.HIGH_WIND_RISK,
+            "🌧️ Rainy Day" to DebugDataProvider.WeatherScenario.RAINY_DAY,
+            "⛈️ Storm Incoming" to DebugDataProvider.WeatherScenario.STORM_INCOMING
+        )
+        
+        val items = options.map { it.first }.toTypedArray()
         
         val builder = android.app.AlertDialog.Builder(this)
         builder.setTitle("🛠️ Debug Mode - Test Scenarios")
         builder.setItems(items) { _, which ->
+            val selected = options[which]
+            
+            // Skip if it's a header or separator
+            if (selected.first.startsWith("===") || selected.first.isEmpty()) {
+                return@setItems
+            }
+            
             debugMode = true
-            val scenario = scenarios[which]
-            loadDebugData(scenario)
+            
+            // Check if it's a weather scenario or bridge scenario
+            when (val value = selected.second) {
+                is DebugDataProvider.Scenario -> {
+                    loadDebugData(value)
+                }
+                is DebugDataProvider.WeatherScenario -> {
+                    loadDebugWeather(value)
+                }
+            }
         }
         
         if (debugMode) {
@@ -560,6 +646,22 @@ class MainActivity : AppCompatActivity() {
         
         builder.setNegativeButton("Cancel", null)
         builder.show()
+    }
+    
+    private fun loadDebugWeather(scenario: DebugDataProvider.WeatherScenario) {
+        val weatherData = DebugDataProvider.getWeatherData(scenario)
+        
+        // Update weather UI directly
+        updateWeatherUI(weatherData)
+        binding.weatherCard.visibility = View.VISIBLE
+        
+        // Show debug indicator
+        binding.appTitle.text = "🛠️ Severn Bridges (DEBUG)"
+        android.widget.Toast.makeText(
+            this, 
+            "Loaded: ${scenario.name.replace("_", " ")}", 
+            android.widget.Toast.LENGTH_LONG
+        ).show()
     }
     
     private fun loadDebugData(scenario: DebugDataProvider.Scenario) {
@@ -686,5 +788,81 @@ class MainActivity : AppCompatActivity() {
         updateUI(updatedData)
         
         return updatedData
+    }
+    
+    private fun updateWeatherUI(weather: WeatherData) {
+        // Current temperature
+        binding.weatherTemperature.text = weather.currentTemperature?.let {
+            String.format("%.1f°C", it)
+        } ?: "--°C"
+        
+        // Current rain probability
+        binding.weatherCurrentRain.text = weather.currentRainProbability?.let {
+            "$it%"
+        } ?: "--%"
+        
+        // Current wind speed
+        binding.weatherCurrentWind.text = weather.currentWindSpeed?.let {
+            String.format("%.0f mph", it)
+        } ?: "-- mph"
+        
+        // Wind status indicator (based on current wind)
+        val currentWindRisk = WeatherData.getWindRiskLevel(weather.currentWindSpeed)
+        val currentWindColor = when (currentWindRisk) {
+            WindRiskLevel.SAFE -> R.color.wind_safe
+            WindRiskLevel.MONITOR -> R.color.wind_monitor
+            WindRiskLevel.HIGH_RISK -> R.color.wind_high_risk
+        }
+        binding.weatherWindStatus.setTextColor(ContextCompat.getColor(this, currentWindColor))
+        
+        // High temperature with time
+        if (weather.highTemperature != null) {
+            binding.weatherHighTemp.text = String.format("%.1f°C", weather.highTemperature)
+            binding.weatherHighTempTime.text = weather.highTempTime?.let { "at $it" } ?: ""
+            binding.weatherHighTempTime.visibility = if (weather.highTempTime != null) View.VISIBLE else View.GONE
+        } else {
+            binding.weatherHighTemp.text = "--°C"
+            binding.weatherHighTempTime.visibility = View.GONE
+        }
+        
+        // Low temperature with time
+        if (weather.lowTemperature != null) {
+            binding.weatherLowTemp.text = String.format("%.1f°C", weather.lowTemperature)
+            binding.weatherLowTempTime.text = weather.lowTempTime?.let { "at $it" } ?: ""
+            binding.weatherLowTempTime.visibility = if (weather.lowTempTime != null) View.VISIBLE else View.GONE
+        } else {
+            binding.weatherLowTemp.text = "--°C"
+            binding.weatherLowTempTime.visibility = View.GONE
+        }
+        
+        // Rain probability with time
+        if (weather.maxRainProbability != null) {
+            binding.weatherRainProb.text = "${weather.maxRainProbability}%"
+            binding.weatherRainTime.text = weather.rainTime?.let { "at $it" } ?: ""
+            binding.weatherRainTime.visibility = if (weather.rainTime != null) View.VISIBLE else View.GONE
+        } else {
+            binding.weatherRainProb.text = "--"
+            binding.weatherRainTime.visibility = View.GONE
+        }
+        
+        // Max wind gust with time and status
+        if (weather.maxWindGust != null) {
+            binding.weatherMaxGust.text = String.format("%.0f mph", weather.maxWindGust)
+            binding.weatherGustTime.text = weather.gustTime?.let { "at $it" } ?: ""
+            binding.weatherGustTime.visibility = if (weather.gustTime != null) View.VISIBLE else View.GONE
+            
+            // Gust status indicator (critical for bridge closures)
+            val gustRiskColor = when (weather.windRiskLevel) {
+                WindRiskLevel.SAFE -> R.color.wind_safe
+                WindRiskLevel.MONITOR -> R.color.wind_monitor
+                WindRiskLevel.HIGH_RISK -> R.color.wind_high_risk
+            }
+            binding.weatherGustStatus.setTextColor(ContextCompat.getColor(this, gustRiskColor))
+            binding.weatherGustStatus.visibility = View.VISIBLE
+        } else {
+            binding.weatherMaxGust.text = "-- mph"
+            binding.weatherGustTime.visibility = View.GONE
+            binding.weatherGustStatus.visibility = View.GONE
+        }
     }
 }
