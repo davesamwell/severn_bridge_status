@@ -1,0 +1,14 @@
+# API Key - Users must obtain their own from National Highways
+api_primary_key.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# macOS
+.DS_Store
