@@ -24,20 +24,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="🌉 Severn Bridges"
-                android:textSize="32sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:gravity="center"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="2dp" />
 
             <TextView
                 android:id="@+id/lastUpdated"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Last updated: --:--:--"
-                android:textSize="13sp"
+                android:textSize="10sp"
                 android:gravity="center"
-                android:paddingBottom="16dp"
+                android:paddingBottom="6dp"
                 android:textColor="@color/text_secondary" />
 
             <!-- Modern Tab Switcher with Underline Indicator -->
@@ -47,7 +47,7 @@
                 android:orientation="horizontal"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="6dp"
                 android:gravity="center">
 
                 <!-- Current Status Tab -->
@@ -58,8 +58,8 @@
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:background="?attr/selectableItemBackground">
@@ -69,7 +69,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🚨 Current Status"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/primary_blue" />
 
@@ -77,7 +77,7 @@
                         android:id="@+id/presentPainIndicator"
                         android:layout_width="40dp"
                         android:layout_height="3dp"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
                         android:background="@color/primary_blue" />
                 </LinearLayout>
 
@@ -89,8 +89,8 @@
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:background="?attr/selectableItemBackground">
@@ -100,14 +100,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="📅 Future Works"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:textColor="@color/text_secondary" />
 
                     <View
                         android:id="@+id/futurePainIndicator"
                         android:layout_width="40dp"
                         android:layout_height="3dp"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
                         android:background="@color/primary_blue"
                         android:visibility="invisible" />
                 </LinearLayout>
@@ -117,7 +117,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="10dp"
                 android:background="@color/divider" />
 
             <!-- Progress Bar -->
@@ -183,8 +183,8 @@
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="16dp"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="2dp"
                     app:cardBackgroundColor="@color/card_background">
 
@@ -192,7 +192,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="20dp">
+                        android:padding="12dp">
 
                         <!-- Bridge Name -->
                         <TextView
@@ -200,18 +200,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="M48 Severn Bridge"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
-                            android:paddingBottom="4dp" />
+                            android:paddingBottom="2dp" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Original Bridge, 1966"
-                            android:textSize="13sp"
+                            android:textSize="11sp"
                             android:textColor="@color/text_secondary"
-                            android:paddingBottom="16dp" />
+                            android:paddingBottom="8dp" />
 
                         <!-- Directional Status Row -->
                         <LinearLayout
@@ -368,8 +368,8 @@
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="16dp"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="2dp"
                     app:cardBackgroundColor="@color/card_background">
 
@@ -377,7 +377,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="20dp">
+                        android:padding="12dp">
 
                         <!-- Bridge Name -->
                         <TextView
@@ -385,18 +385,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="M4 Prince of Wales Bridge"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
-                            android:paddingBottom="4dp" />
+                            android:paddingBottom="2dp" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Second Severn Crossing, 1996"
-                            android:textSize="13sp"
+                            android:textSize="11sp"
                             android:textColor="@color/text_secondary"
-                            android:paddingBottom="16dp" />
+                            android:paddingBottom="8dp" />
 
                         <!-- Directional Status Row -->
                         <LinearLayout
@@ -549,28 +549,356 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Refresh Button - Sleek and Compact -->
-                <Button
-                    android:id="@+id/refreshButton"
-                    android:layout_width="wrap_content"
+                <!-- Weather Card - Compact Display -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/weatherCard"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="🔄 Refresh"
-                    android:textSize="14sp"
-                    android:textAllCaps="false"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
                     android:layout_marginBottom="8dp"
-                    style="@style/Widget.Material3.Button.TextButton" />
+                    android:visibility="gone"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/card_background">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <!-- Weather Header -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🌤️ Weather"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:paddingBottom="8dp" />
+
+                        <!-- SECTION 1: Now -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Now"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_secondary"
+                            android:paddingBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false"
+                            android:paddingBottom="8dp">
+
+                            <!-- Current Temperature -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="start|center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="🌡️"
+                                    android:textSize="16sp"
+                                    android:layout_marginEnd="4dp" />
+
+                                <TextView
+                                    android:id="@+id/weatherTemperature"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="6.8°C"
+                                    android:textSize="14sp"
+                                    android:textColor="@color/text_primary" />
+                            </LinearLayout>
+
+                            <!-- Current Rain Probability -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="🌧️"
+                                    android:textSize="16sp"
+                                    android:layout_marginEnd="4dp" />
+
+                                <TextView
+                                    android:id="@+id/weatherCurrentRain"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="10%"
+                                    android:textSize="14sp"
+                                    android:textColor="@color/text_primary" />
+                            </LinearLayout>
+
+                            <!-- Current Wind Speed with Status -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="end|center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="💨 "
+                                    android:textSize="16sp"
+                                    android:layout_marginEnd="2dp" />
+
+                                <TextView
+                                    android:id="@+id/weatherCurrentWind"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="12 mph"
+                                    android:textSize="14sp"
+                                    android:textColor="@color/text_primary"
+                                    android:layout_marginEnd="3dp" />
+
+                                <TextView
+                                    android:id="@+id/weatherWindStatus"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="●"
+                                    android:textSize="18sp"
+                                    android:textColor="@color/wind_safe" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/text_hint"
+                            android:alpha="0.3"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginBottom="6dp" />
+
+                        <!-- SECTION 2: Today's Peak Conditions -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Peaks Today"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_secondary"
+                            android:paddingBottom="4dp" />
+
+                        <!-- Row 1: High and Low Temps -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false"
+                            android:paddingBottom="6dp">
+
+                            <!-- High Temperature with Time -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="start">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="▲"
+                                        android:textSize="14sp"
+                                        android:textColor="#FF5722"
+                                        android:layout_marginEnd="3dp" />
+
+                                    <TextView
+                                        android:id="@+id/weatherHighTemp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="15.2°C"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/text_primary" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/weatherHighTempTime"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="at 14:00"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/text_secondary"
+                                    android:paddingStart="18dp"
+                                    android:paddingTop="2dp" />
+                            </LinearLayout>
+
+                            <!-- Low Temperature with Time -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="end">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="▼"
+                                        android:textSize="14sp"
+                                        android:textColor="#2196F3"
+                                        android:layout_marginEnd="3dp" />
+
+                                    <TextView
+                                        android:id="@+id/weatherLowTemp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="8.5°C"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/text_primary" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/weatherLowTempTime"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="at 06:00"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/text_secondary"
+                                    android:paddingEnd="18dp"
+                                    android:paddingTop="2dp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Row 2: Rain and Wind -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false">
+
+                            <!-- Rain Probability with Time -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="start">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="🌧️"
+                                        android:textSize="14sp"
+                                        android:layout_marginEnd="3dp" />
+
+                                    <TextView
+                                        android:id="@+id/weatherRainProb"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="100%"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/text_primary" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/weatherRainTime"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="at 22:00"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/text_secondary"
+                                    android:paddingStart="18dp"
+                                    android:paddingTop="2dp" />
+                            </LinearLayout>
+
+                            <!-- Max Wind Gust with Time -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="end">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="🌪️"
+                                        android:textSize="14sp"
+                                        android:layout_marginEnd="3dp" />
+
+                                    <TextView
+                                        android:id="@+id/weatherMaxGust"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="30 mph"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/text_primary" />
+
+                                    <TextView
+                                        android:id="@+id/weatherGustStatus"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text=" ●"
+                                        android:textSize="14sp"
+                                        android:textColor="@color/wind_monitor" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/weatherGustTime"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="at 19:00"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/text_secondary"
+                                    android:paddingEnd="18dp"
+                                    android:paddingTop="2dp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
                 <!-- Info Text -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="ℹ️ Auto-refreshes every 5 minutes • Pull down to refresh"
-                    android:textSize="12sp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
+                    android:textSize="11sp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
                     android:textColor="@color/text_hint"
                     android:gravity="center" />
 

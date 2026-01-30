@@ -10,9 +10,13 @@ import kotlinx.coroutines.launch
 class BridgeViewModel : ViewModel() {
     
     private val apiClient = BridgeApiClient()
+    private val weatherClient = WeatherApiClient()
     
     private val _bridgeData = MutableLiveData<BridgeData?>()
     val bridgeData: LiveData<BridgeData?> = _bridgeData
+    
+    private val _weatherData = MutableLiveData<WeatherData?>()
+    val weatherData: LiveData<WeatherData?> = _weatherData
     
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -30,18 +34,32 @@ class BridgeViewModel : ViewModel() {
             _isLoading.value = true
             _error.value = null
             
-            val result = apiClient.fetchBridgeStatus()
+            // Fetch bridge status
+            val bridgeResult = apiClient.fetchBridgeStatus()
             
-            result.fold(
+            bridgeResult.fold(
                 onSuccess = { data ->
                     _bridgeData.value = data
-                    _isLoading.value = false
                 },
                 onFailure = { exception ->
-                    _error.value = "Failed to load: ${exception.message}"
-                    _isLoading.value = false
+                    _error.value = "Failed to load bridge data: ${exception.message}"
                 }
             )
+            
+            // Fetch weather (don't block on weather failure)
+            val weatherResult = weatherClient.fetchWeather()
+            
+            weatherResult.fold(
+                onSuccess = { data ->
+                    _weatherData.value = data
+                },
+                onFailure = { exception ->
+                    // Weather failure is non-critical, just log it
+                    _weatherData.value = null
+                }
+            )
+            
+            _isLoading.value = false
         }
     }
     
