@@ -39,4 +39,9 @@
     
     <!-- Accent -->
     <color name="link_blue">#0EA5E9</color>
+    
+    <!-- Wind Risk Colors - Matching Status Colors -->
+    <color name="wind_safe">#4CAF50</color>         <!-- Green - matches status_open_icon -->
+    <color name="wind_monitor">#FF9800</color>      <!-- Orange - matches status_restricted_icon -->
+    <color name="wind_high_risk">#F44336</color>    <!-- Red - matches status_closed_icon -->
 </resources>

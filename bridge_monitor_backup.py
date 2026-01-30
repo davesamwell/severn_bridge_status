@@ -9,28 +9,16 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 import ssl
 import hashlib
-import json
 
 # API Configuration
 API_KEY = open('api_primary_key.txt').read().strip()
 BASE_URL = "https://api.data.nationalhighways.co.uk/roads/v2.0/closures"
-# M48 Severn Bridge coordinates for weather
-WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=51.61&longitude=-2.64&hourly=precipitation_probability,windgusts_10m&timezone=Europe/London&forecast_days=1&current_weather=true"
 
 # SSL context
 SSL_CONTEXT = ssl._create_unverified_context()
 
 # Simple caching
 _cache = {'hash': None, 'data': None}
-_weather_cache = {'timestamp': None, 'data': None}
-WEATHER_CACHE_DURATION = 1800  # 30 minutes in seconds
-
-# ANSI Color codes
-COLOR_GREEN = '\033[92m'
-COLOR_YELLOW = '\033[93m'
-COLOR_RED = '\033[91m'
-COLOR_RESET = '\033[0m'
-COLOR_BOLD = '\033[1m'
 
 # Severn Bridge coordinates (approximate)
 # M48 Severn Bridge: 51.61°N, 2.64°W
@@ -41,146 +29,6 @@ SEVERN_BRIDGE_AREA = {
     'lon_min': -2.75,
     'lon_max': -2.55
 }
-
-
-def fetch_weather():
-    """Fetch weather data from Open-Meteo API (no API key needed)"""
-    now = datetime.now(timezone.utc)
-    
-    # Check cache
-    if _weather_cache['timestamp'] is not None and _weather_cache['data'] is not None:
-        cache_age = (now - _weather_cache['timestamp']).total_seconds()
-        if cache_age < WEATHER_CACHE_DURATION:
-            print(f"Using cached weather data ({int(cache_age/60)} minutes old)")
-            return _weather_cache['data']
-    
-    print("Fetching weather from Open-Meteo API...")
-    
-    try:
-        req = urllib.request.Request(WEATHER_URL)
-        with urllib.request.urlopen(req, timeout=10, context=SSL_CONTEXT) as response:
-            if response.status == 200:
-                print(f"✓ Weather API call successful")
-                data = json.loads(response.read().decode('utf-8'))
-                
-                # Cache the result
-                _weather_cache['timestamp'] = now
-                _weather_cache['data'] = data
-                
-                return data
-            else:
-                print(f"✗ Weather API call failed (Status: {response.status})")
-                return None
-    except Exception as e:
-        print(f"✗ Weather API call failed: {e}")
-        return None
-
-def parse_weather_data(weather_data):
-    """Parse Open-Meteo weather response and extract current conditions"""
-    if not weather_data:
-        return None
-    
-    # Get current temperature from current_weather field (more accurate)
-    temperature = None
-    wind_speed_kmh = None
-    if 'current_weather' in weather_data:
-        temperature = weather_data['current_weather'].get('temperature')
-        wind_speed_kmh = weather_data['current_weather'].get('windspeed')
-    
-    wind_speed_mph = wind_speed_kmh * 0.621371 if wind_speed_kmh is not None else None
-    
-    # Get today's max rain probability and max gust from hourly data
-    rain_prob = None
-    rain_time = None
-    max_gust_mph = None
-    gust_time = None
-    if 'hourly' in weather_data:
-        hourly = weather_data['hourly']
-        
-        # Get max rain probability for today (shows highest chance throughout the day)
-        if 'precipitation_probability' in hourly and hourly['precipitation_probability']:
-            rain_probs = hourly['precipitation_probability']
-            rain_prob = max(rain_probs)
-            # Find the time when max rain probability occurs
-            max_idx = rain_probs.index(rain_prob)
-            if 'time' in hourly and max_idx < len(hourly['time']):
-                rain_time = hourly['time'][max_idx]
-        
-        # Get max wind gust for today
-        if 'windgusts_10m' in hourly and hourly['windgusts_10m']:
-            gusts = hourly['windgusts_10m']
-            max_gust_kmh = max(gusts)
-            max_gust_mph = max_gust_kmh * 0.621371
-            # Find the time when max gust occurs
-            max_idx = gusts.index(max_gust_kmh)
-            if 'time' in hourly and max_idx < len(hourly['time']):
-                gust_time = hourly['time'][max_idx]
-    
-    return {
-        'temperature': temperature,
-        'rain_probability': rain_prob,
-        'rain_time': rain_time,
-        'wind_speed_mph': wind_speed_mph,
-        'max_gust_mph': max_gust_mph,
-        'gust_time': gust_time
-    }
-
-def get_wind_risk_level(wind_mph):
-    """Determine wind risk level based on mph"""
-    if wind_mph is None:
-        return 'unknown', COLOR_RESET
-    if wind_mph >= 41:
-        return 'HIGH RISK - Likely closure', COLOR_RED
-    elif wind_mph >= 26:
-        return 'MONITOR - Possible restrictions', COLOR_YELLOW
-    else:
-        return 'Safe', COLOR_GREEN
-
-def display_weather(weather):
-    """Display weather information with color coding"""
-    if not weather:
-        print("❌ Weather data unavailable")
-        return
-    
-    print("=" * 70)
-    print("🌤️  SEVERN BRIDGE WEATHER - TODAY")
-    print("=" * 70)
-    print()
-    
-    if weather['temperature'] is not None:
-        print(f"🌡️  Current Temperature: {weather['temperature']:.1f}°C")
-    
-    if weather['rain_probability'] is not None:
-        rain_text = f"🌧️  Max Rain Probability Today: {weather['rain_probability']}%"
-        if weather.get('rain_time'):
-            # Extract just the hour from ISO timestamp (e.g., "2026-01-29T14:00" -> "14:00")
-            time_str = weather['rain_time'].split('T')[1] if 'T' in weather['rain_time'] else weather['rain_time']
-            rain_text += f" (at {time_str})"
-        print(rain_text)
-    
-    print()
-    
-    if weather['wind_speed_mph'] is not None:
-        risk_level, color = get_wind_risk_level(weather['wind_speed_mph'])
-        print(f"💨 Current Wind Speed: {color}{weather['wind_speed_mph']:.1f} mph{COLOR_RESET}")
-        print(f"   Status: {color}{COLOR_BOLD}{risk_level}{COLOR_RESET}")
-    
-    if weather['max_gust_mph'] is not None:
-        risk_level, color = get_wind_risk_level(weather['max_gust_mph'])
-        print()
-        gust_text = f"🌪️  Max Wind Gust Today: {color}{weather['max_gust_mph']:.1f} mph{COLOR_RESET}"
-        if weather.get('gust_time'):
-            time_str = weather['gust_time'].split('T')[1] if 'T' in weather['gust_time'] else weather['gust_time']
-            gust_text += f" (at {time_str})"
-        print(gust_text)
-        print(f"   Status: {color}{COLOR_BOLD}{risk_level}{COLOR_RESET}")
-    
-    print()
-    print("Wind Risk Levels:")
-    print(f"  {COLOR_GREEN}• 0-25 mph: Safe{COLOR_RESET}")
-    print(f"  {COLOR_YELLOW}• 26-40 mph: Monitor - possible restrictions{COLOR_RESET}")
-    print(f"  {COLOR_RED}• 41+ mph: High risk - likely closure{COLOR_RESET}")
-    print()
 
 def fetch_closures():
     """Fetch closure data from National Highways API"""
@@ -450,12 +298,6 @@ def main():
     print(f"              {now.strftime('%Y-%m-%d %H:%M:%S')} (UTC)")
     print()
     
-    # Fetch and display weather FIRST
-    weather_data = fetch_weather()
-    weather = parse_weather_data(weather_data) if weather_data else None
-    print()
-    display_weather(weather)
-    
     # Fetch data
     xml_data = fetch_closures()
     if not xml_data:
@@ -619,7 +461,6 @@ def main():
     print("   • 'planned' status = scheduled closure, may not have started yet")
     print("   • Ad-hoc closures (e.g., high winds) appear with 'active' status")
     print("   • Check 'cause' field for reason (e.g., poorEnvironment for weather)")
-    print("   • Weather data updates every 30 minutes")
     print("=" * 70)
 
 if __name__ == "__main__":

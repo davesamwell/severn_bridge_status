@@ -52,3 +52,36 @@ data class BridgeData(
     val lastUpdated: Long,
     val totalClosuresFound: Int
 )
+
+enum class WindRiskLevel {
+    SAFE,       // 0-25 mph
+    MONITOR,    // 26-40 mph
+    HIGH_RISK   // 41+ mph
+}
+
+data class WeatherData(
+    val currentTemperature: Double?,       // °C
+    val currentWindSpeed: Double?,         // mph
+    val currentRainProbability: Int?,      // 0-100% for current hour
+    val highTemperature: Double?,          // °C - today's high
+    val highTempTime: String?,             // HH:mm format
+    val lowTemperature: Double?,           // °C - today's low
+    val lowTempTime: String?,              // HH:mm format
+    val maxRainProbability: Int?,          // 0-100%
+    val rainTime: String?,                 // HH:mm format
+    val maxWindGust: Double?,              // mph
+    val gustTime: String?,                 // HH:mm format
+    val windRiskLevel: WindRiskLevel,
+    val lastUpdated: Long
+) {
+    companion object {
+        fun getWindRiskLevel(windMph: Double?): WindRiskLevel {
+            return when {
+                windMph == null -> WindRiskLevel.SAFE
+                windMph >= 41 -> WindRiskLevel.HIGH_RISK
+                windMph >= 26 -> WindRiskLevel.MONITOR
+                else -> WindRiskLevel.SAFE
+            }
+        }
+    }
+}
